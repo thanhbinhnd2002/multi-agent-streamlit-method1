@@ -95,7 +95,7 @@ def simulate_alpha(alpha_node, G, beta_nodes, EPSILON, DELTA, MAX_ITER, TOL):
     support = compute_total_support(x_state, alpha_idx)
     return {"Alpha_Node": alpha_node, "Total_Support": support}
 
-def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2, output_folder="Output"):
+def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2):
     G = import_network(file_path)
     all_nodes = list(G.nodes())
     beta_nodes = all_nodes[:N_BETA]
@@ -106,11 +106,5 @@ def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2,
     )
 
     df = pd.DataFrame(results).sort_values(by="Total_Support", ascending=False)
+    return df
 
-    if output_folder:
-        os.makedirs(output_folder, exist_ok=True)
-        out_file = os.path.join(output_folder, os.path.basename(file_path).replace(".txt", ".csv"))
-        df.to_csv(out_file, index=False)
-        return out_file
-    else:
-        return df
