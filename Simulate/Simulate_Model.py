@@ -95,20 +95,15 @@ def simulate_alpha(alpha_node, G, beta_nodes, EPSILON, DELTA, MAX_ITER, TOL):
     support = compute_total_support(x_state, alpha_idx)
     return {"Alpha_Node": alpha_node, "Total_Support": support}
 
-def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2,
-             output_folder="Output", stop_check_func=None):
+def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2, output_folder="Output"):
     G = import_network(file_path)
     all_nodes = list(G.nodes())
     beta_nodes = all_nodes[:N_BETA]
 
-    results = []
-    for alpha in tqdm(all_nodes, desc="🔁 Alpha nodes"):
-        if stop_check_func and stop_check_func():
-            print("🛑 Simulation stopped early by user.")
-            return None  # không trả kết quả nếu bị dừng
-
-        result = simulate_alpha(alpha, G, beta_nodes, EPSILON, DELTA, MAX_ITER, TOL)
-        results.append(result)
+    results = Parallel(n_jobs=cpu_count() // 2)(
+        delayed(simulate_alpha)(alpha, G, beta_nodes, EPSILON, DELTA, MAX_ITER, TOL)
+        for alpha in tqdm(all_nodes, desc="🔁 Alpha nodes")
+    )
 
     df = pd.DataFrame(results).sort_values(by="Total_Support", ascending=False)
 
@@ -116,7 +111,6 @@ def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2,
         os.makedirs(output_folder, exist_ok=True)
         out_file = os.path.join(output_folder, os.path.basename(file_path).replace(".txt", ".csv"))
         df.to_csv(out_file, index=False)
-        return out_file, df
+        return out_file
     else:
-        return None
-
+        return df
