@@ -47,7 +47,7 @@ else:
 # --- Chạy mô phỏng ---
 if start and "temp_path" in st.session_state:
     with st.spinner("Running simulation..."):
-        df = simulate(
+        result = simulate(
             file_path=st.session_state["temp_path"],
             EPSILON=EPSILON,
             DELTA=DELTA,
@@ -55,6 +55,12 @@ if start and "temp_path" in st.session_state:
             TOL=TOL,
             N_BETA=N_BETA
         )
+
+        # ✅ Nếu simulate trả về tuple → lấy phần tử đầu
+        if isinstance(result, tuple):
+            df = result[0]
+        else:
+            df = result
 
         st.session_state["result_df"] = df
 
@@ -66,6 +72,9 @@ if "result_df" in st.session_state and "filename" in st.session_state:
         st.error("❌ Kết quả mô phỏng là None. Mô phỏng đã thất bại.")
         st.stop()
 
+    if isinstance(df, tuple):
+        df = df[0]
+
     if df.empty:
         st.error("⚠️ Kết quả mô phỏng rỗng. Không có node nào được xử lý.")
         st.stop()
@@ -74,7 +83,6 @@ if "result_df" in st.session_state and "filename" in st.session_state:
         st.error("⚠️ Thiếu cột 'Total_Support' trong kết quả. Kiểm tra lại hàm simulate().")
         st.write(df)
         st.stop()
-
 
     st.success("✅ Simulation completed.")
     st.subheader(f"📊 Simulation Result for: `{st.session_state['filename']}`")
