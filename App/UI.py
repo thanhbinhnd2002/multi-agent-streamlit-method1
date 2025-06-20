@@ -4,7 +4,7 @@ import tempfile
 import streamlit as st
 import pandas as pd
 
-# Thêm thư mục để import module
+# Thêm thư mục để import module nội bộ
 sys.path.append(os.path.abspath("."))
 
 from Simulate.Simulate_Model import import_network, simulate
@@ -30,10 +30,14 @@ if uploaded_file:
     st.session_state["filename"] = filename
     st.code(filename)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".txt", mode="wb") as tmp:
-        tmp.write(uploaded_file.getbuffer())
-        temp_path = tmp.name
-        st.session_state["temp_path"] = temp_path
+    # ✅ Ghi file tạm đúng chuẩn trong môi trường cloud
+    temp_dir = tempfile.gettempdir()
+    temp_path = os.path.join(temp_dir, filename)
+
+    with open(temp_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    st.session_state["temp_path"] = temp_path
 
     G = import_network(temp_path)
     st.write(f"✅ Network loaded with **{len(G.nodes())} nodes** and **{len(G.edges())} edges**.")
@@ -51,18 +55,19 @@ if start and "temp_path" in st.session_state:
             TOL=TOL,
             N_BETA=N_BETA
         )
-        try:
-            os.remove(st.session_state["temp_path"])
-        except:
-            pass
+
         st.session_state["result_df"] = df
 
 # --- Hiển thị kết quả ---
 if "result_df" in st.session_state and "filename" in st.session_state:
+    df = st.session_state["result_df"]
+
+    if df is None or df.empty or "Total_Support" not in df.columns:
+        st.error("❌ Simulation failed or result is empty. Please check your input file format.")
+        st.stop()
+
     st.success("✅ Simulation completed.")
     st.subheader(f"📊 Simulation Result for: `{st.session_state['filename']}`")
-
-    df = st.session_state["result_df"]
     st.dataframe(df.sort_values("Total_Support", ascending=True))
 
     st.download_button(
