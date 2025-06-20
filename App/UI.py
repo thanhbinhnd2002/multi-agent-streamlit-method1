@@ -62,9 +62,19 @@ if start and "temp_path" in st.session_state:
 if "result_df" in st.session_state and "filename" in st.session_state:
     df = st.session_state["result_df"]
 
-    if df is None or df.empty or "Total_Support" not in df.columns:
-        st.error("❌ Simulation failed or result is empty. Please check your input file format.")
+    if df is None:
+        st.error("❌ Kết quả mô phỏng là None. Mô phỏng đã thất bại.")
         st.stop()
+
+    if df.empty:
+        st.error("⚠️ Kết quả mô phỏng rỗng. Không có node nào được xử lý.")
+        st.stop()
+
+    if "Total_Support" not in df.columns:
+        st.error("⚠️ Thiếu cột 'Total_Support' trong kết quả. Kiểm tra lại hàm simulate().")
+        st.write(df)
+        st.stop()
+
 
     st.success("✅ Simulation completed.")
     st.subheader(f"📊 Simulation Result for: `{st.session_state['filename']}`")
