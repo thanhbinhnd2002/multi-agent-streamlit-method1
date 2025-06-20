@@ -98,6 +98,11 @@ def simulate_alpha(alpha_node, G, beta_nodes, EPSILON, DELTA, MAX_ITER, TOL):
 def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2):
     G = import_network(file_path)
     all_nodes = list(G.nodes())
+
+    if len(all_nodes) == 0:
+        print("❌ Lỗi: File mạng không có node nào.")
+        return pd.DataFrame()  # Trả ra DataFrame rỗng để tránh lỗi tiếp
+
     beta_nodes = all_nodes[:N_BETA]
 
     results = Parallel(n_jobs=cpu_count() // 2)(
@@ -105,6 +110,14 @@ def simulate(file_path, EPSILON=0.1, DELTA=0.2, MAX_ITER=50, TOL=1e-4, N_BETA=2)
         for alpha in tqdm(all_nodes, desc="🔁 Alpha nodes")
     )
 
-    df = pd.DataFrame(results).sort_values(by="Total_Support", ascending=False)
-    return df
+    if len(results) == 0:
+        print("❌ Lỗi: Không mô phỏng được kết quả nào.")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(results)
+    if "Total_Support" not in df.columns:
+        print("❌ Lỗi: DataFrame không có cột 'Total_Support'")
+        return df
+
+    return df.sort_values(by="Total_Support", ascending=False)
 
