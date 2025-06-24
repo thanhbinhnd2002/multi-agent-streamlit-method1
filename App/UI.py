@@ -1,12 +1,16 @@
+# ✅ UI.py — Streamlit interface with visualization and result matching support
+
 import sys
 import os
 import tempfile
 import streamlit as st
 import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
-# Thêm thư mục để import module nội bộ
-sys.path.append(os.path.abspath("."))
-
+sys.path.append(os.path.abspath(".."))
 from Simulate.Simulate_Model import import_network, simulate
 from functions.Compare import match_with_oncokb_pubmed
 
@@ -22,7 +26,9 @@ DELTA = st.sidebar.slider("Delta", 0.01, 1.0, 0.2, step=0.01)
 MAX_ITER = st.sidebar.number_input("Max Iterations", 10, 200, 50)
 TOL = st.sidebar.number_input("Tolerance", 1e-6, 1e-2, 1e-4, format="%e")
 N_BETA = st.sidebar.slider("Number of Beta per group", 1, 10, 2)
+
 start = st.sidebar.button("🚀 Run Simulation", disabled=(uploaded_file is None))
+draw = st.sidebar.button("🖼️ Draw Network", disabled=(uploaded_file is None))
 
 # --- Đọc file mạng ---
 if uploaded_file:
@@ -40,9 +46,18 @@ if uploaded_file:
     st.session_state["temp_path"] = temp_path
 
     G = import_network(temp_path)
+    st.session_state["graph"] = G
     st.write(f"✅ Network loaded with **{len(G.nodes())} nodes** and **{len(G.edges())} edges**.")
 else:
     st.warning("⚠️ Please upload a network file.")
+
+# --- Vẽ mạng ---
+if draw and "graph" in st.session_state:
+    G = st.session_state["graph"]
+    fig, ax = plt.subplots(figsize=(7, 5))
+    pos = nx.spring_layout(G, seed=42)
+    nx.draw(G, pos, with_labels=False, node_size=30, edge_color="gray", ax=ax)
+    st.pyplot(fig)
 
 # --- Chạy mô phỏng ---
 if start and "temp_path" in st.session_state:
@@ -87,6 +102,8 @@ if "result_df" in st.session_state and "filename" in st.session_state:
     st.success("✅ Simulation completed.")
     st.subheader(f"📊 Simulation Result for: `{st.session_state['filename']}`")
     st.dataframe(df.sort_values("Total_Support", ascending=True))
+    df = st.session_state["result_df"]
+    st.dataframe(df)
 
     st.download_button(
         "⬇️ Download Result CSV",
@@ -94,7 +111,6 @@ if "result_df" in st.session_state and "filename" in st.session_state:
         file_name="simulation_result.csv",
         mime="text/csv"
     )
-
     if st.button("🔍 Đối chiếu với OncoKB và PubMed"):
         matched_df = match_with_oncokb_pubmed(df)
         st.session_state["matched_df"] = matched_df
