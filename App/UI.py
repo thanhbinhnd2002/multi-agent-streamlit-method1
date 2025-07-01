@@ -103,7 +103,7 @@ if "result_df" in st.session_state and "filename" in st.session_state:
     st.subheader(f"📊 Simulation Result for: `{st.session_state['filename']}`")
     st.dataframe(df.sort_values("Total_Support", ascending=True))
     df = st.session_state["result_df"]
-    st.dataframe(df)
+
 
     st.download_button(
         "⬇️ Download Result CSV",
