@@ -30,6 +30,20 @@ functions/
 
 ## ⚙️ Installation
 
+### 📥 Install Anaconda
+
+1. Visit the official Anaconda download page: [https://www.anaconda.com/products/distribution](https://www.anaconda.com/products/distribution)
+2. Download the installer for your operating system (Windows/macOS/Linux)
+3. Run the installer:
+
+   * On **Windows**, make sure to **check** the option: *Add Anaconda to my PATH environment variable*
+   * On **macOS/Linux**, follow the terminal instructions
+4. Open a terminal (or Anaconda Prompt) and verify installation:
+
+```bash
+conda --version
+```
+
 ### Step 1: Clone the repository
 
 ```bash
@@ -43,6 +57,8 @@ cd multi-agent-competition-model
 conda create -n beta_env python=3.8
 conda activate beta_env
 ```
+
+> If you don't want to install full Anaconda, you can also use **Miniconda**: [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
 
 ### Step 3: Install dependencies
 
@@ -63,6 +79,12 @@ Fix:
 * Open `requirements.txt` with Notepad++ / VSCode
 * Save as `UTF-8 with BOM`
 * Try running `pip install` again
+
+### Optional: Create requirements file from current env (developer use)
+
+```bash
+pip freeze > requirements.txt
+```
 
 ---
 
